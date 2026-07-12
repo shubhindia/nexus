@@ -16,7 +16,11 @@ func NewRouter(
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/health", Health)
-	mux.HandleFunc("GET /v1/models", Models(gw))
+	mux.HandleFunc("/v1/models", Models(gw))
+	mux.HandleFunc(
+		"/v1/chat/completions",
+		Chat(gw),
+	)
 
 	return Chain(
 		mux,
