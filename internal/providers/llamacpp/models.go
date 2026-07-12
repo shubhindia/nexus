@@ -3,7 +3,6 @@ package llamacpp
 import (
 	"context"
 	"net/http"
-	"path/filepath"
 
 	"github.com/shubhindia/nexus/internal/types"
 )
@@ -14,7 +13,7 @@ func (c *Client) Models(
 
 	var resp modelsResponse
 
-	if err := c.do(
+	if err := c.doJSON(
 		ctx,
 		http.MethodGet,
 		"/v1/models",
@@ -24,18 +23,5 @@ func (c *Client) Models(
 		return nil, err
 	}
 
-	models := &types.ModelsResponse{
-		Object: resp.Object,
-		Data:   make([]types.Model, len(resp.Data)),
-	}
-
-	for i, model := range resp.Data {
-		models.Data[i] = types.Model{
-			ID:      filepath.Base(model.ID),
-			Object:  model.Object,
-			OwnedBy: model.OwnedBy,
-		}
-	}
-
-	return models, nil
+	return toAPIModelsResponse(&resp), nil
 }

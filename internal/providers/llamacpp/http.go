@@ -5,11 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
-func (c *Client) do(
+func (c *Client) doJSON(
 	ctx context.Context,
 	method string,
 	path string,
@@ -50,10 +52,20 @@ func (c *Client) do(
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+
+		return fmt.Errorf(
+			"llamacpp: %s %s returned %d: %s",
+			method,
+			path,
+			resp.StatusCode,
+			strings.TrimSpace(string(body)),
+		)
 	}
 
 	return json.NewDecoder(resp.Body).Decode(respBody)
