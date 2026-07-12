@@ -17,7 +17,10 @@ func New(p provider.Provider) *Gateway {
 	}
 }
 
-func (g *Gateway) Chat(ctx context.Context, req *types.ChatRequest) (*types.ChatResponse, error) {
+func (g *Gateway) Chat(
+	ctx context.Context,
+	req *types.ChatRequest,
+) (*provider.ChatResult, error) {
 	return g.provider.Chat(ctx, req)
 }
 

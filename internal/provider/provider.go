@@ -7,6 +7,10 @@ import (
 )
 
 type Provider interface {
-	Chat(ctx context.Context, req *types.ChatRequest) (*types.ChatResponse, error)
 	Models(ctx context.Context) (*types.ModelsResponse, error)
+
+	Chat(
+		ctx context.Context,
+		req *types.ChatRequest,
+	) (*ChatResult, error)
 }
