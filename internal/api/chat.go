@@ -1,6 +1,7 @@
 package api
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/shubhindia/nexus/internal/gateway"
@@ -28,11 +29,18 @@ func Chat(gw *gateway.Gateway) http.HandlerFunc {
 		}
 
 		if result.Stream != nil {
-			http.Error(
-				w,
-				"streaming not implemented",
-				http.StatusNotImplemented,
-			)
+			defer func() {
+				_ = result.Stream.Close()
+			}()
+
+			w.Header().Set("Content-Type", "text/event-stream")
+			w.Header().Set("Cache-Control", "no-cache")
+			w.Header().Set("Connection", "keep-alive")
+
+			if _, err := io.Copy(w, result.Stream); err != nil {
+				WriteError(w, err)
+			}
+
 			return
 		}
 
