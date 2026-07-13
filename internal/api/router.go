@@ -22,8 +22,8 @@ func NewRouter(
 		Chat(gw),
 	)
 	mux.HandleFunc(
-		"POST /v1/responses",
-		Responses(gw),
+		"/v1/responses",
+		Responses(gw, log),
 	)
 
 	return Chain(

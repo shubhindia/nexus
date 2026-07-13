@@ -5,9 +5,20 @@ import (
 	"net/http"
 )
 
-func DecodeJSON(r *http.Request, dst any) error {
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
+func DecodeJSON(
+	r *http.Request,
+	dst any,
+) error {
+
+	body, err := RequestBody(r)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = body.Close()
+	}()
+
+	decoder := json.NewDecoder(body)
 
 	return decoder.Decode(dst)
 }

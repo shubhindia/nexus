@@ -1,44 +1,27 @@
 package api
 
-import "github.com/shubhindia/nexus/internal/types"
+import (
+	"github.com/shubhindia/nexus/internal/prompt"
+	"github.com/shubhindia/nexus/internal/types"
+)
 
-func toChatRequest(req *types.ResponsesRequest) *types.ChatRequest {
-	messages := make([]types.Message, 0)
+var codexCompiler = prompt.NewCodexCompiler()
 
-	if req.Instructions != "" {
-		messages = append(messages, types.Message{
-			Role:    "system",
-			Content: req.Instructions,
-		})
-	}
-
-	for _, input := range req.Input {
-		var text string
-
-		for _, content := range input.Content {
-			if content.Type == "input_text" {
-				text += content.Text
-			}
-		}
-
-		if text == "" {
-			continue
-		}
-
-		messages = append(messages, types.Message{
-			Role:    input.Role,
-			Content: text,
-		})
-	}
+func toChatRequest(
+	req *types.ResponsesRequest,
+) *types.ChatRequest {
 
 	return &types.ChatRequest{
 		Model:    req.Model,
-		Messages: messages,
+		Messages: codexCompiler.Compile(req),
 		Stream:   req.Stream,
 	}
 }
 
-func toResponsesResponse(chat *types.ChatResponse) *types.ResponsesResponse {
+func toResponsesResponse(
+	chat *types.ChatResponse,
+) *types.ResponsesResponse {
+
 	text := ""
 
 	if len(chat.Choices) > 0 {

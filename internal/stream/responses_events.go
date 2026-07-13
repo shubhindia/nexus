@@ -1,82 +1,62 @@
 package stream
 
-type Response struct {
-	ID     string `json:"id"`
-	Object string `json:"object,omitempty"`
-	Model  string `json:"model,omitempty"`
-	Status string `json:"status,omitempty"`
+type ResponseUsage struct {
+	InputTokens  int `json:"input_tokens"`
+	OutputTokens int `json:"output_tokens"`
+	TotalTokens  int `json:"total_tokens"`
 }
 
-type ResponseItem struct {
-	ID     string `json:"id"`
-	Type   string `json:"type"`
-	Role   string `json:"role,omitempty"`
-	Status string `json:"status,omitempty"`
-}
-
-type ResponseContentPart struct {
+type ResponseOutputContent struct {
 	Type string `json:"type"`
-	Text string `json:"text,omitempty"`
+	Text string `json:"text"`
+}
+
+type ResponseOutputItem struct {
+	Type    string                  `json:"type"`
+	Role    string                  `json:"role"`
+	Content []ResponseOutputContent `json:"content"`
+}
+
+type Response struct {
+	ID        string               `json:"id"`
+	Object    string               `json:"object"`
+	CreatedAt int64                `json:"created_at"`
+	Status    string               `json:"status"`
+	Model     string               `json:"model"`
+	Output    []ResponseOutputItem `json:"output"`
+	Usage     ResponseUsage        `json:"usage"`
 }
 
 type ResponseCreatedEvent struct {
 	Type           string   `json:"type"`
-	SequenceNumber int      `json:"sequence_number"`
+	SequenceNumber int      `json:"sequence_number,omitempty"`
 	Response       Response `json:"response"`
 }
 
 type ResponseOutputItemAddedEvent struct {
-	Type           string       `json:"type"`
-	SequenceNumber int          `json:"sequence_number"`
-	OutputIndex    int          `json:"output_index"`
-	Item           ResponseItem `json:"item"`
-}
-
-type ResponseContentPartAddedEvent struct {
-	Type           string              `json:"type"`
-	SequenceNumber int                 `json:"sequence_number"`
-	OutputIndex    int                 `json:"output_index"`
-	ContentIndex   int                 `json:"content_index"`
-	ItemID         string              `json:"item_id"`
-	Part           ResponseContentPart `json:"part"`
+	Type           string             `json:"type"`
+	SequenceNumber int                `json:"sequence_number,omitempty"`
+	OutputIndex    int                `json:"output_index"`
+	Item           ResponseOutputItem `json:"item"`
 }
 
 type ResponseOutputTextDeltaEvent struct {
 	Type           string `json:"type"`
-	SequenceNumber int    `json:"sequence_number"`
+	SequenceNumber int    `json:"sequence_number,omitempty"`
 	OutputIndex    int    `json:"output_index"`
 	ContentIndex   int    `json:"content_index"`
-	ItemID         string `json:"item_id"`
 	Delta          string `json:"delta"`
 }
 
-type ResponseOutputTextDoneEvent struct {
-	Type           string `json:"type"`
-	SequenceNumber int    `json:"sequence_number"`
-	OutputIndex    int    `json:"output_index"`
-	ContentIndex   int    `json:"content_index"`
-	ItemID         string `json:"item_id"`
-	Text           string `json:"text"`
-}
-
-type ResponseContentPartDoneEvent struct {
-	Type           string              `json:"type"`
-	SequenceNumber int                 `json:"sequence_number"`
-	OutputIndex    int                 `json:"output_index"`
-	ContentIndex   int                 `json:"content_index"`
-	ItemID         string              `json:"item_id"`
-	Part           ResponseContentPart `json:"part"`
-}
-
 type ResponseOutputItemDoneEvent struct {
-	Type           string       `json:"type"`
-	SequenceNumber int          `json:"sequence_number"`
-	OutputIndex    int          `json:"output_index"`
-	Item           ResponseItem `json:"item"`
+	Type           string             `json:"type"`
+	SequenceNumber int                `json:"sequence_number,omitempty"`
+	OutputIndex    int                `json:"output_index"`
+	Item           ResponseOutputItem `json:"item"`
 }
 
 type ResponseCompletedEvent struct {
 	Type           string   `json:"type"`
-	SequenceNumber int      `json:"sequence_number"`
+	SequenceNumber int      `json:"sequence_number,omitempty"`
 	Response       Response `json:"response"`
 }

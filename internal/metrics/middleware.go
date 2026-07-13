@@ -52,3 +52,9 @@ func Middleware(m *Metrics) func(http.Handler) http.Handler {
 		})
 	}
 }
+
+func (w *responseWriter) Flush() {
+	if f, ok := w.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}

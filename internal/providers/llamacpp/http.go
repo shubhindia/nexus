@@ -18,6 +18,7 @@ func (c *Client) doJSON(
 	reqBody any,
 	respBody any,
 ) error {
+
 	resp, err := c.send(
 		ctx,
 		method,
@@ -32,8 +33,18 @@ func (c *Client) doJSON(
 		_ = resp.Body.Close()
 	}()
 
-	if err := json.NewDecoder(resp.Body).Decode(respBody); err != nil {
-		return fmt.Errorf("decode response: %w", err)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read response: %w", err)
+	}
+
+	if err := json.Unmarshal(body, respBody); err != nil {
+		return fmt.Errorf(
+			"decode %s response: %w\nbody:\n%s",
+			path,
+			err,
+			string(body),
+		)
 	}
 
 	return nil
@@ -45,6 +56,7 @@ func (c *Client) doStream(
 	path string,
 	reqBody any,
 ) (io.ReadCloser, error) {
+
 	resp, err := c.send(
 		ctx,
 		method,
@@ -64,6 +76,7 @@ func (c *Client) send(
 	path string,
 	reqBody any,
 ) (*http.Response, error) {
+
 	endpoint, err := url.JoinPath(c.url, path)
 	if err != nil {
 		return nil, fmt.Errorf("join url: %w", err)
@@ -98,6 +111,7 @@ func (c *Client) send(
 	}
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+
 		defer func() {
 			_ = resp.Body.Close()
 		}()
@@ -105,7 +119,7 @@ func (c *Client) send(
 		body, _ := io.ReadAll(resp.Body)
 
 		return nil, fmt.Errorf(
-			"%s %s returned %d: %s",
+			"%s %s returned %d:\n%s",
 			method,
 			path,
 			resp.StatusCode,

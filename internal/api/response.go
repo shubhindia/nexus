@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/shubhindia/nexus/internal/types"
@@ -17,6 +19,12 @@ func WriteJSON(w http.ResponseWriter, status int, v any) {
 }
 
 func WriteError(w http.ResponseWriter, err error) {
+	slog.Error(
+		"api.error",
+		slog.String("type", fmt.Sprintf("%T", err)),
+		slog.Any("error", err),
+	)
+
 	apiErr, ok := err.(*types.APIError)
 	if !ok {
 		apiErr = &types.APIError{

@@ -28,3 +28,10 @@ func (w *responseWriter) Write(b []byte) (int, error) {
 
 	return n, err
 }
+
+// Preserve streaming support.
+func (w *responseWriter) Flush() {
+	if f, ok := w.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
+	}
+}
