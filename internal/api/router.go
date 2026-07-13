@@ -21,6 +21,10 @@ func NewRouter(
 		"/v1/chat/completions",
 		Chat(gw),
 	)
+	mux.HandleFunc(
+		"POST /v1/responses",
+		Responses(gw),
+	)
 
 	return Chain(
 		mux,
