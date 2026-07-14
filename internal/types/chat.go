@@ -7,11 +7,16 @@ type ChatRequest struct {
 	TopP        *float64  `json:"top_p,omitempty"`
 	MaxTokens   *int      `json:"max_tokens,omitempty"`
 	Stream      bool      `json:"stream,omitempty"`
+
+	Tools      []Tool      `json:"tools,omitempty"`
+	ToolChoice *ToolChoice `json:"tool_choice,omitempty"`
 }
 
 type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role       Role        `json:"role"`
+	Content    string      `json:"content,omitempty"`
+	ToolCalls  []ToolCall  `json:"tool_calls,omitempty"`
+	ToolResult *ToolResult `json:"tool_result,omitempty"`
 }
 
 type ChatResponse struct {

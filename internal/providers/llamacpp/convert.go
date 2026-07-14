@@ -35,7 +35,7 @@ func toProviderChatRequest(req *types.ChatRequest) *chatRequest {
 
 	for i, msg := range req.Messages {
 		r.Messages[i] = chatMessage{
-			Role:    msg.Role,
+			Role:    msg.Role.String(),
 			Content: msg.Content,
 		}
 	}
@@ -64,7 +64,7 @@ func toAPIChatResponse(resp *chatResponse) *types.ChatResponse {
 		r.Choices[i] = types.Choice{
 			Index: choice.Index,
 			Message: types.Message{
-				Role:    choice.Message.Role,
+				Role:    types.ParseRole(choice.Message.Role),
 				Content: choice.Message.Content,
 			},
 			FinishReason: choice.FinishReason,

@@ -76,7 +76,7 @@ func (c *CodexCompiler) compileConversation(
 		case "user", "assistant":
 
 			messages = append(messages, types.Message{
-				Role:    message.Role,
+				Role:    types.ParseRole(message.Role),
 				Content: text,
 			})
 		}

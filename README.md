@@ -136,3 +136,7 @@ make check
 - broaden Responses compatibility
 - improve error normalization
 - add provider and stream translation tests
+
+Notes:
+
+- The internal/types package represents Nexus's internal model, not any provider's API.
