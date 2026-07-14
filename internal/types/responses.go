@@ -5,6 +5,9 @@ type ResponsesRequest struct {
 	Instructions string          `json:"instructions,omitempty"`
 	Input        []ResponseInput `json:"input"`
 	Stream       bool            `json:"stream"`
+
+	Tools      []Tool      `json:"tools,omitempty"`
+	ToolChoice *ToolChoice `json:"tool_choice,omitempty"`
 }
 
 type ResponseInput struct {

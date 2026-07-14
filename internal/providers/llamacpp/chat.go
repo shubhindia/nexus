@@ -45,3 +45,12 @@ func (c *Client) Chat(
 		Response: toAPIChatResponse(&resp),
 	}, nil
 }
+
+func (c *Client) Capabilities() provider.Capabilities {
+	return provider.Capabilities{
+		Streaming: true,
+		Tools:     false,
+		Vision:    false,
+		JSONMode:  false,
+	}
+}

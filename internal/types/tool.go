@@ -2,21 +2,35 @@ package types
 
 import "encoding/json"
 
-type Tool struct {
-	Name        string          `json:"name"`
-	Description string          `json:"description,omitempty"`
-	Parameters  json.RawMessage `json:"parameters"`
-}
-
-type ToolChoice struct {
-	Mode string `json:"mode"`
-	Name string `json:"name,omitempty"`
-}
+type ToolType string
 
 const (
-	ToolChoiceAuto = "auto"
-	ToolChoiceNone = "none"
+	ToolTypeFunction ToolType = "function"
 )
+
+type Tool struct {
+	Type ToolType `json:"type"`
+
+	Name string `json:"name"`
+
+	Description string `json:"description,omitempty"`
+
+	Parameters json.RawMessage `json:"parameters"`
+}
+
+type ToolChoiceMode string
+
+const (
+	ToolChoiceAuto ToolChoiceMode = "auto"
+	ToolChoiceNone ToolChoiceMode = "none"
+	ToolChoiceTool ToolChoiceMode = "tool"
+)
+
+type ToolChoice struct {
+	Mode ToolChoiceMode `json:"mode"`
+
+	Name string `json:"name,omitempty"`
+}
 
 type ToolCall struct {
 	ID string `json:"id"`
@@ -24,10 +38,4 @@ type ToolCall struct {
 	Name string `json:"name"`
 
 	Arguments json.RawMessage `json:"arguments"`
-}
-
-type ToolResult struct {
-	ToolCallID string `json:"tool_call_id"`
-
-	Output string `json:"output"`
 }

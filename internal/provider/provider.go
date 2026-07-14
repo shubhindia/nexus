@@ -13,4 +13,5 @@ type Provider interface {
 		ctx context.Context,
 		req *types.ChatRequest,
 	) (*ChatResult, error)
+	Capabilities() Capabilities
 }
