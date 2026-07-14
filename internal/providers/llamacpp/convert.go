@@ -26,6 +26,8 @@ func toAPIModelsResponse(resp *modelsResponse) *types.ModelsResponse {
 func toProviderChatRequest(req *types.ChatRequest) *chatRequest {
 	r := &chatRequest{
 		Model:       req.Model,
+		Tools:       convertTools(req.Tools),
+		ToolChoice:  convertToolChoice(req.ToolChoice),
 		Temperature: req.Temperature,
 		TopP:        req.TopP,
 		MaxTokens:   req.MaxTokens,
@@ -66,6 +68,9 @@ func toAPIChatResponse(resp *chatResponse) *types.ChatResponse {
 			Message: types.Message{
 				Role:    types.ParseRole(choice.Message.Role),
 				Content: choice.Message.Content,
+				ToolCalls: normalizeToolCalls(
+					&choice.Message,
+				),
 			},
 			FinishReason: choice.FinishReason,
 		}

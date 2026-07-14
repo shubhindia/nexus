@@ -12,17 +12,23 @@ type model struct {
 }
 
 type chatRequest struct {
-	Model       string        `json:"model"`
-	Messages    []chatMessage `json:"messages"`
-	Temperature *float64      `json:"temperature,omitempty"`
-	TopP        *float64      `json:"top_p,omitempty"`
-	MaxTokens   *int          `json:"max_tokens,omitempty"`
-	Stream      bool          `json:"stream,omitempty"`
+	Model    string        `json:"model"`
+	Messages []chatMessage `json:"messages"`
+
+	Tools      []chatTool      `json:"tools,omitempty"`
+	ToolChoice *chatToolChoice `json:"tool_choice,omitempty"`
+
+	Temperature *float64 `json:"temperature,omitempty"`
+	TopP        *float64 `json:"top_p,omitempty"`
+	MaxTokens   *int     `json:"max_tokens,omitempty"`
+	Stream      bool     `json:"stream,omitempty"`
 }
 
 type chatMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
+
+	ToolCalls []chatToolCall `json:"tool_calls,omitempty"`
 }
 
 type chatResponse struct {

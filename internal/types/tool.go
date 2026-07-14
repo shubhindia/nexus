@@ -40,6 +40,10 @@ type ToolCall struct {
 	Arguments json.RawMessage `json:"arguments"`
 }
 
+func (t ToolType) String() string {
+	return string(t)
+}
+
 func ParseToolType(s string) ToolType {
 
 	switch s {

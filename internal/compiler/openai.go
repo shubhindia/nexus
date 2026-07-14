@@ -18,19 +18,14 @@ func (c *OpenAICompiler) Compile(
 ) *types.ChatRequest {
 
 	return &types.ChatRequest{
-		Model: req.Model,
-
-		Messages: c.messages(req),
-
-		Tools: c.tools(req),
-
-		ToolChoice: c.toolChoice(req),
-
+		Model:       req.Model,
+		Messages:    c.messages(req),
+		Tools:       c.tools(req),
+		ToolChoice:  c.toolChoice(req),
 		Temperature: nil,
 		TopP:        nil,
 		MaxTokens:   nil,
-
-		Stream: req.Stream,
+		Stream:      req.Stream,
 	}
 }
 

@@ -21,16 +21,23 @@ type ResponseInputContent struct {
 }
 
 type ResponsesResponse struct {
-	ID     string           `json:"id"`
-	Object string           `json:"object"`
-	Model  string           `json:"model"`
-	Output []ResponseOutput `json:"output"`
+	ID     string               `json:"id"`
+	Object string               `json:"object"`
+	Model  string               `json:"model"`
+	Output []ResponseOutputItem `json:"output"`
 }
 
-type ResponseOutput struct {
-	Type    string                  `json:"type"`
-	Role    string                  `json:"role"`
-	Content []ResponseOutputContent `json:"content"`
+type ResponseOutputItem struct {
+	Type string `json:"type"`
+
+	// message
+	Role    string                  `json:"role,omitempty"`
+	Content []ResponseOutputContent `json:"content,omitempty"`
+
+	// function_call
+	CallID    string `json:"call_id,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Arguments string `json:"arguments,omitempty"`
 }
 
 type ResponseOutputContent struct {
