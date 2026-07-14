@@ -39,3 +39,15 @@ type ToolCall struct {
 
 	Arguments json.RawMessage `json:"arguments"`
 }
+
+func ParseToolType(s string) ToolType {
+
+	switch s {
+
+	case "function":
+		return ToolTypeFunction
+
+	default:
+		return ToolTypeFunction
+	}
+}

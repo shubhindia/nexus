@@ -118,14 +118,41 @@ func (c *OpenAICompiler) tools(
 	req *openai.ResponsesRequest,
 ) []types.Tool {
 
-	return nil
+	if len(req.Tools) == 0 {
+		return nil
+	}
+
+	tools := make([]types.Tool, 0, len(req.Tools))
+
+	for _, tool := range req.Tools {
+
+		tools = append(tools, types.Tool{
+			Type: types.ParseToolType(tool.Type),
+
+			Name: tool.Name,
+
+			Description: tool.Description,
+
+			Parameters: tool.Parameters,
+		})
+	}
+
+	return tools
 }
 
 func (c *OpenAICompiler) toolChoice(
 	req *openai.ResponsesRequest,
 ) *types.ToolChoice {
 
-	return nil
+	if req.ToolChoice == nil {
+		return nil
+	}
+
+	return &types.ToolChoice{
+		Mode: types.ToolChoiceMode(req.ToolChoice.Mode),
+
+		Name: req.ToolChoice.Name,
+	}
 }
 
 func inputText(
