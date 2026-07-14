@@ -1,4 +1,6 @@
-package types
+package openai
+
+import "github.com/shubhindia/nexus/internal/types"
 
 type ResponsesRequest struct {
 	Model        string          `json:"model"`
@@ -6,8 +8,8 @@ type ResponsesRequest struct {
 	Input        []ResponseInput `json:"input"`
 	Stream       bool            `json:"stream"`
 
-	Tools      []Tool      `json:"tools,omitempty"`
-	ToolChoice *ToolChoice `json:"tool_choice,omitempty"`
+	Tools      []types.Tool      `json:"tools,omitempty"`
+	ToolChoice *types.ToolChoice `json:"tool_choice,omitempty"`
 }
 
 type ResponseInput struct {

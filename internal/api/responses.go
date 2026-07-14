@@ -4,9 +4,16 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/shubhindia/nexus/internal/compiler"
+	"github.com/shubhindia/nexus/internal/encoder"
 	"github.com/shubhindia/nexus/internal/gateway"
+	"github.com/shubhindia/nexus/internal/schema/openai"
 	"github.com/shubhindia/nexus/internal/stream"
-	"github.com/shubhindia/nexus/internal/types"
+)
+
+var (
+	openAICompiler = compiler.NewOpenAICompiler()
+	openAIEncoder  = encoder.NewOpenAIEncoder()
 )
 
 func Responses(
@@ -16,14 +23,14 @@ func Responses(
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		var req types.ResponsesRequest
+		var req openai.ResponsesRequest
 
 		if err := DecodeJSON(r, &req); err != nil {
 			WriteError(w, err)
 			return
 		}
 
-		chatReq := toChatRequest(&req)
+		chatReq := openAICompiler.Compile(&req)
 
 		result, err := gw.Chat(
 			r.Context(),
@@ -77,7 +84,7 @@ func Responses(
 		WriteJSON(
 			w,
 			http.StatusOK,
-			toResponsesResponse(result.Response),
+			openAIEncoder.Responses(result.Response),
 		)
 	}
 }

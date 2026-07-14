@@ -1,19 +1,41 @@
-package prompt
+package compiler
 
 import (
 	"strings"
 
+	"github.com/shubhindia/nexus/internal/schema/openai"
 	"github.com/shubhindia/nexus/internal/types"
 )
 
-type CodexCompiler struct{}
+type OpenAICompiler struct{}
 
-func NewCodexCompiler() *CodexCompiler {
-	return &CodexCompiler{}
+func NewOpenAICompiler() *OpenAICompiler {
+	return &OpenAICompiler{}
 }
 
-func (c *CodexCompiler) Messages(
-	req *types.ResponsesRequest,
+func (c *OpenAICompiler) Compile(
+	req *openai.ResponsesRequest,
+) *types.ChatRequest {
+
+	return &types.ChatRequest{
+		Model: req.Model,
+
+		Messages: c.messages(req),
+
+		Tools: c.tools(req),
+
+		ToolChoice: c.toolChoice(req),
+
+		Temperature: nil,
+		TopP:        nil,
+		MaxTokens:   nil,
+
+		Stream: req.Stream,
+	}
+}
+
+func (c *OpenAICompiler) messages(
+	req *openai.ResponsesRequest,
 ) []types.Message {
 
 	messages := make([]types.Message, 0)
@@ -30,7 +52,7 @@ func (c *CodexCompiler) Messages(
 	return messages
 }
 
-func (c *CodexCompiler) compileInstructions(
+func (c *OpenAICompiler) compileInstructions(
 	instructions string,
 ) string {
 
@@ -43,8 +65,8 @@ func (c *CodexCompiler) compileInstructions(
 	return strings.TrimSpace(instructions)
 }
 
-func (c *CodexCompiler) compileConversation(
-	input []types.ResponseInput,
+func (c *OpenAICompiler) compileConversation(
+	input []openai.ResponseInput,
 ) []types.Message {
 
 	messages := make([]types.Message, 0)
@@ -56,12 +78,12 @@ func (c *CodexCompiler) compileConversation(
 			continue
 		}
 
-		switch message.Role {
+		switch types.ParseRole(message.Role) {
 
-		case types.RoleDeveloper.String():
+		case types.RoleDeveloper:
 			fallthrough
 
-		case types.RoleSystem.String():
+		case types.RoleSystem:
 
 			system := c.compileInstructions(text)
 			if system == "" {
@@ -73,14 +95,14 @@ func (c *CodexCompiler) compileConversation(
 				Content: system,
 			})
 
-		case "user":
+		case types.RoleUser:
 
 			messages = append(messages, types.Message{
 				Role:    types.RoleUser,
 				Content: text,
 			})
 
-		case "assistant":
+		case types.RoleAssistant:
 
 			messages = append(messages, types.Message{
 				Role:    types.RoleAssistant,
@@ -92,22 +114,22 @@ func (c *CodexCompiler) compileConversation(
 	return messages
 }
 
-func (c *CodexCompiler) Tools(
-	req *types.ResponsesRequest,
+func (c *OpenAICompiler) tools(
+	req *openai.ResponsesRequest,
 ) []types.Tool {
 
 	return nil
 }
 
-func (c *CodexCompiler) ToolChoice(
-	req *types.ResponsesRequest,
+func (c *OpenAICompiler) toolChoice(
+	req *openai.ResponsesRequest,
 ) *types.ToolChoice {
 
 	return nil
 }
 
 func inputText(
-	content []types.ResponseInputContent,
+	content []openai.ResponseInputContent,
 ) string {
 
 	var text strings.Builder
