@@ -12,7 +12,7 @@ func NewCodexCompiler() *CodexCompiler {
 	return &CodexCompiler{}
 }
 
-func (c *CodexCompiler) Compile(
+func (c *CodexCompiler) Messages(
 	req *types.ResponsesRequest,
 ) []types.Message {
 
@@ -20,7 +20,7 @@ func (c *CodexCompiler) Compile(
 
 	if system := c.compileInstructions(req.Instructions); system != "" {
 		messages = append(messages, types.Message{
-			Role:    "system",
+			Role:    types.RoleSystem,
 			Content: system,
 		})
 	}
@@ -58,10 +58,10 @@ func (c *CodexCompiler) compileConversation(
 
 		switch message.Role {
 
-		case "developer":
+		case types.RoleDeveloper.String():
 			fallthrough
 
-		case "system":
+		case types.RoleSystem.String():
 
 			system := c.compileInstructions(text)
 			if system == "" {
@@ -69,20 +69,41 @@ func (c *CodexCompiler) compileConversation(
 			}
 
 			messages = append(messages, types.Message{
-				Role:    "system",
+				Role:    types.RoleSystem,
 				Content: system,
 			})
 
-		case "user", "assistant":
+		case "user":
 
 			messages = append(messages, types.Message{
-				Role:    types.ParseRole(message.Role),
+				Role:    types.RoleUser,
+				Content: text,
+			})
+
+		case "assistant":
+
+			messages = append(messages, types.Message{
+				Role:    types.RoleAssistant,
 				Content: text,
 			})
 		}
 	}
 
 	return messages
+}
+
+func (c *CodexCompiler) Tools(
+	req *types.ResponsesRequest,
+) []types.Tool {
+
+	return nil
+}
+
+func (c *CodexCompiler) ToolChoice(
+	req *types.ResponsesRequest,
+) *types.ToolChoice {
+
+	return nil
 }
 
 func inputText(

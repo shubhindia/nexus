@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/shubhindia/nexus/internal/prompt"
+	prompt "github.com/shubhindia/nexus/internal/compiler"
 	"github.com/shubhindia/nexus/internal/types"
 )
 
@@ -12,9 +12,11 @@ func toChatRequest(
 ) *types.ChatRequest {
 
 	return &types.ChatRequest{
-		Model:    req.Model,
-		Messages: codexCompiler.Compile(req),
-		Stream:   req.Stream,
+		Model:      req.Model,
+		Messages:   codexCompiler.Messages(req),
+		Tools:      codexCompiler.Tools(req),
+		ToolChoice: codexCompiler.ToolChoice(req),
+		Stream:     req.Stream,
 	}
 }
 
