@@ -51,13 +51,10 @@ func convertTools(
 
 		out = append(out, chatTool{
 			Type: tool.Type.String(),
-
 			Function: chatFunction{
-				Name: tool.Name,
-
+				Name:        tool.Name,
 				Description: tool.Description,
-
-				Parameters: tool.Parameters,
+				Parameters:  tool.Parameters,
 			},
 		})
 	}
@@ -65,28 +62,20 @@ func convertTools(
 	return out
 }
 
-func convertToolChoice(
-	choice *types.ToolChoice,
-) *chatToolChoice {
-
+func convertToolChoice(choice *types.ToolChoice) any {
 	if choice == nil {
 		return nil
 	}
 
 	switch choice.Mode {
-
 	case types.ToolChoiceAuto:
-		return &chatToolChoice{
-			Type: "auto",
-		}
+		return "auto"
 
 	case types.ToolChoiceNone:
-		return &chatToolChoice{
-			Type: "none",
-		}
+		return "none"
 
 	case types.ToolChoiceTool:
-		return &chatToolChoice{
+		return chatToolChoice{
 			Type: "function",
 			Function: &chatToolFunction{
 				Name: choice.Name,

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -117,6 +118,11 @@ func (c *Client) send(
 		}()
 
 		body, _ := io.ReadAll(resp.Body)
+		slog.Info(
+			"llamacpp.response",
+			slog.Int("status", resp.StatusCode),
+			slog.String("body", string(body)),
+		)
 
 		return nil, fmt.Errorf(
 			"%s %s returned %d:\n%s",

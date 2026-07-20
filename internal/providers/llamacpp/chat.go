@@ -2,6 +2,8 @@ package llamacpp
 
 import (
 	"context"
+	"encoding/json"
+	"log/slog"
 	"net/http"
 
 	"github.com/shubhindia/nexus/internal/provider"
@@ -13,12 +15,21 @@ func (c *Client) Chat(
 	req *types.ChatRequest,
 ) (*provider.ChatResult, error) {
 
+	providerReq := compileChatRequest(req)
+	body, _ := json.MarshalIndent(providerReq, "", "  ")
+
+	slog.Info(
+		"llamacpp.request",
+		slog.Int("tools", len(providerReq.Tools)),
+		slog.String("body", string(body)),
+	)
+
 	if req.Stream {
 		stream, err := c.doStream(
 			ctx,
 			http.MethodPost,
 			"/v1/chat/completions",
-			toProviderChatRequest(req),
+			providerReq,
 		)
 		if err != nil {
 			return nil, err
@@ -35,7 +46,7 @@ func (c *Client) Chat(
 		ctx,
 		http.MethodPost,
 		"/v1/chat/completions",
-		toProviderChatRequest(req),
+		providerReq,
 		&resp,
 	); err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-package provider
+package providers
 
 import (
 	"context"
@@ -9,11 +9,8 @@ import (
 type Provider interface {
 	Name() string
 
-	Models(ctx context.Context) (*types.ModelsResponse, error)
-
 	Chat(
 		ctx context.Context,
 		req *types.ChatRequest,
-	) (*ChatResult, error)
-	Capabilities() Capabilities
+	) (*types.ChatResponse, error)
 }

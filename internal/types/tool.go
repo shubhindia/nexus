@@ -9,13 +9,10 @@ const (
 )
 
 type Tool struct {
-	Type ToolType `json:"type"`
-
-	Name string `json:"name"`
-
-	Description string `json:"description,omitempty"`
-
-	Parameters json.RawMessage `json:"parameters"`
+	Type        ToolType        `json:"type"`
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	Parameters  json.RawMessage `json:"parameters"`
 }
 
 type ToolChoiceMode string
@@ -28,15 +25,12 @@ const (
 
 type ToolChoice struct {
 	Mode ToolChoiceMode `json:"mode"`
-
-	Name string `json:"name,omitempty"`
+	Name string         `json:"name,omitempty"`
 }
 
 type ToolCall struct {
-	ID string `json:"id"`
-
-	Name string `json:"name"`
-
+	ID        string          `json:"id"`
+	Name      string          `json:"name"`
 	Arguments json.RawMessage `json:"arguments"`
 }
 

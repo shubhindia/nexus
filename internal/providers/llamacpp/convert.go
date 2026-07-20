@@ -23,7 +23,7 @@ func toAPIModelsResponse(resp *modelsResponse) *types.ModelsResponse {
 	return r
 }
 
-func toProviderChatRequest(req *types.ChatRequest) *chatRequest {
+func compileChatRequest(req *types.ChatRequest) *chatRequest {
 	r := &chatRequest{
 		Model:       req.Model,
 		Tools:       convertTools(req.Tools),

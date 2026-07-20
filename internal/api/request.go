@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"io"
+	"log/slog"
 	"net/http"
 )
 
@@ -14,11 +16,18 @@ func DecodeJSON(
 	if err != nil {
 		return err
 	}
-	defer func() {
-		_ = body.Close()
-	}()
+	defer body.Close()
 
-	decoder := json.NewDecoder(body)
+	data, err := io.ReadAll(body)
+	if err != nil {
+		return err
+	}
 
-	return decoder.Decode(dst)
+	// TEMPORARY
+	slog.Info(
+		"http.request.body",
+		slog.String("body", string(data)),
+	)
+
+	return json.Unmarshal(data, dst)
 }

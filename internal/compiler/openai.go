@@ -1,6 +1,7 @@
 package compiler
 
 import (
+	"log/slog"
 	"strings"
 
 	"github.com/shubhindia/nexus/internal/schema/openai"
@@ -16,6 +17,13 @@ func NewOpenAICompiler() *OpenAICompiler {
 func (c *OpenAICompiler) Compile(
 	req *openai.ResponsesRequest,
 ) *types.ChatRequest {
+
+	slog.Info(
+		"compiler.chat_request",
+		slog.Int("messages", len(c.messages(req))),
+		slog.Int("tools", len(c.tools(req))),
+		slog.Any("tool_choice", c.toolChoice(req)),
+	)
 
 	return &types.ChatRequest{
 		Model:       req.Model,
@@ -120,21 +128,24 @@ func (c *OpenAICompiler) tools(
 	tools := make([]types.Tool, 0, len(req.Tools))
 
 	for _, tool := range req.Tools {
+		if tool.Type != "function" {
+			slog.Info(
+				"skipping unsupported tool",
+				"type", tool.Type,
+			)
+			continue
+		}
 
 		tools = append(tools, types.Tool{
-			Type: types.ParseToolType(tool.Type),
-
-			Name: tool.Name,
-
+			Type:        types.ToolTypeFunction,
+			Name:        tool.Name,
 			Description: tool.Description,
-
-			Parameters: tool.Parameters,
+			Parameters:  tool.Parameters,
 		})
 	}
 
 	return tools
 }
-
 func (c *OpenAICompiler) toolChoice(
 	req *openai.ResponsesRequest,
 ) *types.ToolChoice {
@@ -144,8 +155,7 @@ func (c *OpenAICompiler) toolChoice(
 	}
 
 	return &types.ToolChoice{
-		Mode: types.ToolChoiceMode(req.ToolChoice.Mode),
-
+		Mode: toToolChoiceMode(req.ToolChoice.Mode),
 		Name: req.ToolChoice.Name,
 	}
 }
@@ -225,4 +235,21 @@ func stripSection(
 	}
 
 	return text
+}
+
+func toToolChoiceMode(mode string) types.ToolChoiceMode {
+	switch mode {
+
+	case openai.ToolChoiceAuto:
+		return types.ToolChoiceAuto
+
+	case openai.ToolChoiceNone:
+		return types.ToolChoiceNone
+
+	case openai.ToolChoiceRequired:
+		return types.ToolChoiceTool
+
+	default:
+		return types.ToolChoiceAuto
+	}
 }

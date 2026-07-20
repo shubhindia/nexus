@@ -4,6 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/shubhindia/nexus/internal/config"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -12,11 +14,6 @@ import (
 	"github.com/shubhindia/nexus/internal/logger"
 	"github.com/shubhindia/nexus/internal/metrics"
 	"github.com/shubhindia/nexus/internal/providers/llamacpp"
-)
-
-const (
-	nexusAddr = ":9000"
-	llamaURL  = "http://localhost:9001"
 )
 
 func main() {
@@ -32,7 +29,7 @@ func main() {
 	m := metrics.New(registry)
 
 	// LLM Provider
-	p := llamacpp.New(llamaURL)
+	p := llamacpp.New(config.LlamaURL)
 
 	gw := gateway.New(p)
 
@@ -51,10 +48,10 @@ func main() {
 
 	log.Info(
 		"http.server.start",
-		slog.String("addr", nexusAddr),
+		slog.String("addr", config.NexusPort),
 	)
 
-	if err := http.ListenAndServe(nexusAddr, mux); err != nil {
+	if err := http.ListenAndServe(config.NexusPort, mux); err != nil {
 		log.Error(
 			"http.server.error",
 			slog.Any("error", err),
