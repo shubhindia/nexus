@@ -18,7 +18,7 @@ Today the backend is `llama.cpp`. Nexus keeps the client-facing API stable while
 Current limits:
 
 - one provider in practice: `llama.cpp`
-- runtime configuration is hardcoded
+- only one provider is selected at startup
 - Responses support is a narrow text-oriented subset
 
 ## Architecture
@@ -58,7 +58,7 @@ The key design choice is to keep the provider contract small. Providers only nee
 Requirements:
 
 - Go `1.25.5` or newer
-- a `llama.cpp` server on `http://localhost:9001`
+- a `llama.cpp` server reachable at the configured `NEXUS_LLAMACPP_URL`
 
 Run Nexus:
 
@@ -69,7 +69,16 @@ go run ./cmd/nexus
 Current defaults:
 
 - Nexus listens on `:9000`
-- `llama.cpp` is expected at `http://localhost:9001`
+- provider is `llama.cpp`
+- `llama.cpp` is expected at `http://192.168.1.11:8080`
+
+Environment variables:
+
+```bash
+NEXUS_PORT=:9000
+NEXUS_PROVIDER=llama.cpp
+NEXUS_LLAMACPP_URL=http://192.168.1.11:8080
+```
 
 Health check:
 

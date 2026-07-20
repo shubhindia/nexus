@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -13,10 +14,13 @@ import (
 	"github.com/shubhindia/nexus/internal/gateway"
 	"github.com/shubhindia/nexus/internal/logger"
 	"github.com/shubhindia/nexus/internal/metrics"
+	"github.com/shubhindia/nexus/internal/provider"
 	"github.com/shubhindia/nexus/internal/providers/llamacpp"
 )
 
 func main() {
+	cfg := config.Load()
+
 	// Logger
 	log := logger.New(logger.Config{
 		Format: logger.Console,
@@ -29,7 +33,14 @@ func main() {
 	m := metrics.New(registry)
 
 	// LLM Provider
-	p := llamacpp.New(config.LlamaURL)
+	p, err := newProvider(cfg)
+	if err != nil {
+		log.Error(
+			"provider.init",
+			slog.Any("error", err),
+		)
+		return
+	}
 
 	gw := gateway.New(p)
 
@@ -48,13 +59,23 @@ func main() {
 
 	log.Info(
 		"http.server.start",
-		slog.String("addr", config.NexusPort),
+		slog.String("addr", cfg.NexusPort),
+		slog.String("provider", p.Name()),
 	)
 
-	if err := http.ListenAndServe(config.NexusPort, mux); err != nil {
+	if err := http.ListenAndServe(cfg.NexusPort, mux); err != nil {
 		log.Error(
 			"http.server.error",
 			slog.Any("error", err),
 		)
+	}
+}
+
+func newProvider(cfg config.Config) (provider.Provider, error) {
+	switch cfg.Provider {
+	case config.ProviderLlamaCPP:
+		return llamacpp.New(cfg.LlamaURL), nil
+	default:
+		return nil, fmt.Errorf("unsupported provider %q", cfg.Provider)
 	}
 }

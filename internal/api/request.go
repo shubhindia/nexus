@@ -16,7 +16,9 @@ func DecodeJSON(
 	if err != nil {
 		return err
 	}
-	defer body.Close()
+	defer func() {
+		_ = body.Close()
+	}()
 
 	data, err := io.ReadAll(body)
 	if err != nil {
