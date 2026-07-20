@@ -1,10 +1,11 @@
 package compiler
 
 import (
-	"log/slog"
+	"encoding/json"
 	"strings"
 
 	"github.com/shubhindia/nexus/internal/schema/openai"
+	"github.com/shubhindia/nexus/internal/toolstate"
 	"github.com/shubhindia/nexus/internal/types"
 )
 
@@ -17,14 +18,6 @@ func NewOpenAICompiler() *OpenAICompiler {
 func (c *OpenAICompiler) Compile(
 	req *openai.ResponsesRequest,
 ) *types.ChatRequest {
-
-	slog.Info(
-		"compiler.chat_request",
-		slog.Int("messages", len(c.messages(req))),
-		slog.Int("tools", len(c.tools(req))),
-		slog.Any("tool_choice", c.toolChoice(req)),
-	)
-
 	return &types.ChatRequest{
 		Model:       req.Model,
 		Messages:    c.messages(req),
@@ -73,8 +66,65 @@ func (c *OpenAICompiler) compileConversation(
 ) []types.Message {
 
 	messages := make([]types.Message, 0)
+	callNames := map[string]string{}
+	skippedCalls := map[string]string{}
 
 	for _, message := range input {
+
+		switch message.Type {
+		case "function_call":
+			call := compileFunctionCall(message)
+			if call == nil {
+				if message.CallID != "" && message.Name != "" {
+					skippedCalls[message.CallID] = message.Name
+				}
+				continue
+			}
+
+			messages = append(messages, types.Message{
+				Role:      types.RoleAssistant,
+				ToolCalls: []types.ToolCall{*call},
+			})
+
+			if call.ID != "" && call.Name != "" {
+				callNames[call.ID] = call.Name
+			}
+
+			continue
+
+		case "function_call_output":
+			toolName := message.Name
+			if toolName == "" {
+				toolName = callNames[message.CallID]
+			}
+
+			if _, skipped := skippedCalls[message.CallID]; skipped || message.CallID == "" {
+				content := strings.TrimSpace(message.Output)
+				if content == "" {
+					continue
+				}
+
+				if toolName != "" {
+					content = "Tool " + toolName + " output:\n" + content
+				}
+
+				messages = append(messages, types.Message{
+					Role:    types.RoleUser,
+					Content: content,
+				})
+
+				continue
+			}
+
+			messages = append(messages, types.Message{
+				Role:       types.RoleTool,
+				Name:       toolName,
+				ToolCallID: message.CallID,
+				Content:    strings.TrimSpace(message.Output),
+			})
+
+			continue
+		}
 
 		text := inputText(message.Content)
 		if text == "" {
@@ -117,6 +167,44 @@ func (c *OpenAICompiler) compileConversation(
 	return messages
 }
 
+func compileFunctionCall(
+	input openai.ResponseInput,
+) *types.ToolCall {
+	if input.Name == "" {
+		return nil
+	}
+
+	arguments := json.RawMessage(input.Arguments)
+	if len(arguments) == 0 {
+		arguments = json.RawMessage(`{}`)
+	}
+
+	if !json.Valid(arguments) {
+		encoded, err := json.Marshal(input.Arguments)
+		if err != nil {
+			return nil
+		}
+
+		arguments = encoded
+	}
+
+	thoughtSignature := input.ThoughtSignature
+	if thoughtSignature == "" {
+		thoughtSignature = toolstate.LookupThoughtSignature(input.CallID)
+	}
+
+	if thoughtSignature == "" {
+		return nil
+	}
+
+	return &types.ToolCall{
+		ID:               input.CallID,
+		Name:             input.Name,
+		Arguments:        arguments,
+		ThoughtSignature: thoughtSignature,
+	}
+}
+
 func (c *OpenAICompiler) tools(
 	req *openai.ResponsesRequest,
 ) []types.Tool {
@@ -129,10 +217,6 @@ func (c *OpenAICompiler) tools(
 
 	for _, tool := range req.Tools {
 		if tool.Type != "function" {
-			slog.Info(
-				"skipping unsupported tool",
-				"type", tool.Type,
-			)
 			continue
 		}
 

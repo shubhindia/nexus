@@ -15,6 +15,20 @@ type Choice struct {
 }
 
 type Delta struct {
-	Role    string `json:"role,omitempty"`
-	Content string `json:"content,omitempty"`
+	Role      string          `json:"role,omitempty"`
+	Content   string          `json:"content,omitempty"`
+	ToolCalls []ToolCallDelta `json:"tool_calls,omitempty"`
+}
+
+type ToolCallDelta struct {
+	Index    int               `json:"index,omitempty"`
+	ID       string            `json:"id,omitempty"`
+	Type     string            `json:"type,omitempty"`
+	Function ToolFunctionDelta `json:"function,omitempty"`
+}
+
+type ToolFunctionDelta struct {
+	Name             string `json:"name,omitempty"`
+	Arguments        string `json:"arguments,omitempty"`
+	ThoughtSignature string `json:"thought_signature,omitempty"`
 }

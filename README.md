@@ -2,7 +2,7 @@
 
 Nexus is a small AI gateway written in Go. It exposes an OpenAI-compatible API and forwards requests to a backend provider.
 
-Today the backend is `llama.cpp`. Nexus keeps the client-facing API stable while the backend remains replaceable.
+Today the supported backends are `llama.cpp` and Gemini. Nexus keeps the client-facing API stable while the backend remains replaceable.
 
 ## Current Scope
 
@@ -17,7 +17,7 @@ Today the backend is `llama.cpp`. Nexus keeps the client-facing API stable while
 
 Current limits:
 
-- one provider in practice: `llama.cpp`
+- one provider is selected at startup from the configured backends
 - only one provider is selected at startup
 - Responses support is a narrow text-oriented subset
 
@@ -58,7 +58,7 @@ The key design choice is to keep the provider contract small. Providers only nee
 Requirements:
 
 - Go `1.25.5` or newer
-- a `llama.cpp` server reachable at the configured `NEXUS_LLAMACPP_URL`
+- a configured backend provider
 
 Run Nexus:
 
@@ -71,6 +71,7 @@ Current defaults:
 - Nexus listens on `:9000`
 - provider is `llama.cpp`
 - `llama.cpp` is expected at `http://192.168.1.11:8080`
+- Gemini uses `https://generativelanguage.googleapis.com/v1beta`
 
 Environment variables:
 
@@ -78,6 +79,8 @@ Environment variables:
 NEXUS_PORT=:9000
 NEXUS_PROVIDER=llama.cpp
 NEXUS_LLAMACPP_URL=http://192.168.1.11:8080
+NEXUS_GEMINI_URL=https://generativelanguage.googleapis.com/v1beta
+NEXUS_GEMINI_API_KEY=
 ```
 
 Health check:

@@ -8,23 +8,6 @@ import (
 	"strings"
 )
 
-type chatCompletionChunk struct {
-	ID     string `json:"id"`
-	Object string `json:"object"`
-	Model  string `json:"model"`
-
-	Choices []struct {
-		Index int `json:"index"`
-
-		Delta struct {
-			Role    string `json:"role,omitempty"`
-			Content string `json:"content,omitempty"`
-		} `json:"delta"`
-
-		FinishReason *string `json:"finish_reason,omitempty"`
-	} `json:"choices"`
-}
-
 func ChatCompletionToResponses(
 	w io.Writer,
 	r io.Reader,
@@ -54,7 +37,7 @@ func ChatCompletionToResponses(
 			return rw.Completed()
 		}
 
-		var chunk chatCompletionChunk
+		var chunk ChatCompletionChunk
 
 		if err := json.Unmarshal([]byte(data), &chunk); err != nil {
 			return fmt.Errorf(
@@ -77,6 +60,26 @@ func ChatCompletionToResponses(
 
 		if len(chunk.Choices) == 0 {
 			continue
+		}
+
+		toolCalls := chunk.Choices[0].Delta.ToolCalls
+		if len(toolCalls) > 0 {
+			items := make([]ResponseOutputItem, 0, len(toolCalls))
+
+			for _, toolCall := range toolCalls {
+				items = append(items, ResponseOutputItem{
+					Type:             "function_call",
+					Status:           "completed",
+					CallID:           toolCall.ID,
+					Name:             toolCall.Function.Name,
+					Arguments:        toolCall.Function.Arguments,
+					ThoughtSignature: toolCall.Function.ThoughtSignature,
+				})
+			}
+
+			if err := rw.FunctionCalls(items); err != nil {
+				return err
+			}
 		}
 
 		delta := chunk.Choices[0].Delta.Content

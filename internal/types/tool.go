@@ -29,9 +29,10 @@ type ToolChoice struct {
 }
 
 type ToolCall struct {
-	ID        string          `json:"id"`
-	Name      string          `json:"name"`
-	Arguments json.RawMessage `json:"arguments"`
+	ID               string          `json:"id"`
+	Name             string          `json:"name"`
+	Arguments        json.RawMessage `json:"arguments"`
+	ThoughtSignature string          `json:"thought_signature,omitempty"`
 }
 
 func (t ToolType) String() string {

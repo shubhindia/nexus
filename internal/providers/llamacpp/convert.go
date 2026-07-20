@@ -37,12 +37,33 @@ func compileChatRequest(req *types.ChatRequest) *chatRequest {
 
 	for i, msg := range req.Messages {
 		r.Messages[i] = chatMessage{
-			Role:    msg.Role.String(),
-			Content: msg.Content,
+			Role:      msg.Role.String(),
+			Content:   msg.Content,
+			ToolCalls: convertChatToolCalls(msg.ToolCalls),
 		}
 	}
 
 	return r
+}
+
+func convertChatToolCalls(calls []types.ToolCall) []chatToolCall {
+	if len(calls) == 0 {
+		return nil
+	}
+
+	out := make([]chatToolCall, 0, len(calls))
+	for _, call := range calls {
+		out = append(out, chatToolCall{
+			ID:   call.ID,
+			Type: "function",
+			Function: chatFunctionCall{
+				Name:      call.Name,
+				Arguments: call.Arguments,
+			},
+		})
+	}
+
+	return out
 }
 
 func toAPIChatResponse(resp *chatResponse) *types.ChatResponse {

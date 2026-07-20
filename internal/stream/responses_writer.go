@@ -4,6 +4,8 @@ import (
 	"io"
 	"strings"
 	"time"
+
+	"github.com/shubhindia/nexus/internal/toolstate"
 )
 
 type ResponseWriter struct {
@@ -16,14 +18,18 @@ type ResponseWriter struct {
 	createdAt  int64
 
 	text strings.Builder
+
+	messageIndex int
+	output       []ResponseOutputItem
 }
 
 func NewResponseWriter(
 	w io.Writer,
 ) *ResponseWriter {
 	return &ResponseWriter{
-		w:         w,
-		createdAt: time.Now().Unix(),
+		w:            w,
+		createdAt:    time.Now().Unix(),
+		messageIndex: -1,
 	}
 }
 
@@ -37,7 +43,6 @@ func (rw *ResponseWriter) Created(
 	responseID string,
 	model string,
 ) error {
-
 	rw.responseID = responseID
 	rw.model = model
 
@@ -62,6 +67,30 @@ func (rw *ResponseWriter) Created(
 func (rw *ResponseWriter) Delta(
 	delta string,
 ) error {
+	if rw.messageIndex == -1 {
+		rw.messageIndex = len(rw.output)
+		rw.output = append(rw.output, ResponseOutputItem{
+			Type:   "message",
+			Status: "in_progress",
+			Role:   "assistant",
+			Content: []ResponseOutputContent{{
+				Type: "output_text",
+				Text: "",
+			}},
+		})
+
+		if err := writeSSE(
+			rw.w,
+			ResponseOutputItemAddedEvent{
+				Type:           "response.output_item.added",
+				SequenceNumber: rw.next(),
+				OutputIndex:    rw.messageIndex,
+				Item:           rw.output[rw.messageIndex],
+			},
+		); err != nil {
+			return err
+		}
+	}
 
 	rw.text.WriteString(delta)
 
@@ -70,59 +99,73 @@ func (rw *ResponseWriter) Delta(
 		ResponseOutputTextDeltaEvent{
 			Type:           "response.output_text.delta",
 			SequenceNumber: rw.next(),
-			OutputIndex:    0,
+			OutputIndex:    rw.messageIndex,
 			ContentIndex:   0,
 			Delta:          delta,
 		},
 	)
 }
 
+func (rw *ResponseWriter) FunctionCalls(calls []ResponseOutputItem) error {
+	for _, call := range calls {
+		toolstate.StoreThoughtSignature(call.CallID, call.ThoughtSignature)
+
+		index := len(rw.output)
+		rw.output = append(rw.output, call)
+
+		if err := writeSSE(
+			rw.w,
+			ResponseOutputItemAddedEvent{
+				Type:           "response.output_item.added",
+				SequenceNumber: rw.next(),
+				OutputIndex:    index,
+				Item:           call,
+			},
+		); err != nil {
+			return err
+		}
+
+		if err := writeSSE(
+			rw.w,
+			ResponseOutputItemDoneEvent{
+				Type:           "response.output_item.done",
+				SequenceNumber: rw.next(),
+				OutputIndex:    index,
+				Item:           call,
+			},
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (rw *ResponseWriter) Completed() error {
-
-	text := rw.text.String()
-
-	item := ResponseOutputItem{
-		Type: "message",
-		Role: "assistant",
-		Content: []ResponseOutputContent{
-			{
+	if rw.messageIndex != -1 {
+		item := ResponseOutputItem{
+			Type:   "message",
+			Status: "completed",
+			Role:   "assistant",
+			Content: []ResponseOutputContent{{
 				Type: "output_text",
-				Text: text,
-			},
-		},
-	}
+				Text: rw.text.String(),
+			}},
+		}
 
-	if err := writeSSE(
-		rw.w,
-		ResponseOutputItemAddedEvent{
-			Type:           "response.output_item.added",
-			SequenceNumber: rw.next(),
-			OutputIndex:    0,
-			Item: ResponseOutputItem{
-				Type: "message",
-				Role: "assistant",
-				Content: []ResponseOutputContent{
-					{
-						Type: "output_text",
-						Text: "",
-					},
-				},
-			},
-		},
-	); err != nil {
-		return err
-	}
+		rw.output[rw.messageIndex] = item
 
-	if err := writeSSE(
-		rw.w,
-		ResponseOutputItemDoneEvent{
-			Type:           "response.output_item.done",
-			SequenceNumber: rw.next(),
-			OutputIndex:    0,
-			Item:           item,
-		},
-	); err != nil {
-		return err
+		if err := writeSSE(
+			rw.w,
+			ResponseOutputItemDoneEvent{
+				Type:           "response.output_item.done",
+				SequenceNumber: rw.next(),
+				OutputIndex:    rw.messageIndex,
+				Item:           item,
+			},
+		); err != nil {
+			return err
+		}
 	}
 
 	return writeSSE(
@@ -136,10 +179,8 @@ func (rw *ResponseWriter) Completed() error {
 				CreatedAt: rw.createdAt,
 				Status:    "completed",
 				Model:     rw.model,
-				Output: []ResponseOutputItem{
-					item,
-				},
-				Usage: ResponseUsage{},
+				Output:    rw.output,
+				Usage:     ResponseUsage{},
 			},
 		},
 	)

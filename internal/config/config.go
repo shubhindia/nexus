@@ -4,16 +4,20 @@ import "os"
 
 const (
 	ProviderLlamaCPP = "llama.cpp"
+	ProviderGemini   = "gemini"
 
 	defaultNexusPort = ":9000"
 	defaultProvider  = ProviderLlamaCPP
 	defaultLlamaURL  = "http://192.168.1.11:8080"
+	defaultGeminiURL = "https://generativelanguage.googleapis.com/v1beta"
 )
 
 type Config struct {
 	NexusPort string
 	Provider  string
 	LlamaURL  string
+	GeminiURL string
+	GeminiKey string
 }
 
 func Load() Config {
@@ -30,6 +34,11 @@ func Load() Config {
 			"NEXUS_LLAMACPP_URL",
 			defaultLlamaURL,
 		),
+		GeminiURL: envOrDefault(
+			"NEXUS_GEMINI_URL",
+			defaultGeminiURL,
+		),
+		GeminiKey: os.Getenv("NEXUS_GEMINI_API_KEY"),
 	}
 }
 

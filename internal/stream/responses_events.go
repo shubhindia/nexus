@@ -12,9 +12,15 @@ type ResponseOutputContent struct {
 }
 
 type ResponseOutputItem struct {
-	Type    string                  `json:"type"`
-	Role    string                  `json:"role"`
-	Content []ResponseOutputContent `json:"content"`
+	ID               string                  `json:"id,omitempty"`
+	Type             string                  `json:"type"`
+	Status           string                  `json:"status,omitempty"`
+	Role             string                  `json:"role,omitempty"`
+	Content          []ResponseOutputContent `json:"content,omitempty"`
+	CallID           string                  `json:"call_id,omitempty"`
+	Name             string                  `json:"name,omitempty"`
+	Arguments        string                  `json:"arguments,omitempty"`
+	ThoughtSignature string                  `json:"thought_signature,omitempty"`
 }
 
 type Response struct {

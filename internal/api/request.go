@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"io"
-	"log/slog"
 	"net/http"
 )
 
@@ -24,12 +23,6 @@ func DecodeJSON(
 	if err != nil {
 		return err
 	}
-
-	// TEMPORARY
-	slog.Info(
-		"http.request.body",
-		slog.String("body", string(data)),
-	)
 
 	return json.Unmarshal(data, dst)
 }

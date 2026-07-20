@@ -15,6 +15,7 @@ import (
 	"github.com/shubhindia/nexus/internal/logger"
 	"github.com/shubhindia/nexus/internal/metrics"
 	"github.com/shubhindia/nexus/internal/provider"
+	"github.com/shubhindia/nexus/internal/providers/gemini"
 	"github.com/shubhindia/nexus/internal/providers/llamacpp"
 )
 
@@ -75,6 +76,12 @@ func newProvider(cfg config.Config) (provider.Provider, error) {
 	switch cfg.Provider {
 	case config.ProviderLlamaCPP:
 		return llamacpp.New(cfg.LlamaURL), nil
+	case config.ProviderGemini:
+		if cfg.GeminiKey == "" {
+			return nil, fmt.Errorf("NEXUS_GEMINI_API_KEY is required for provider %q", cfg.Provider)
+		}
+
+		return gemini.New(cfg.GeminiURL, cfg.GeminiKey), nil
 	default:
 		return nil, fmt.Errorf("unsupported provider %q", cfg.Provider)
 	}
